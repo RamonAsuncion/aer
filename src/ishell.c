@@ -10,39 +10,6 @@
 
 #include "wrappers.h"
 
-
-/*
- * This program implements a simple Unix shell. The shell supports command history, which allows
- * the user to navigate through previously entered commands using the up and down arrow keys.
- *
- * To use the history feature, simply press the up arrow key after typing a few commands. The
- * shell will display the last command you entered. Press the up arrow key again to see the
- * command before that, and so on. You can also press the down arrow key to navigate in the
- * opposite direction.
- *
- * The history is stored in a file called .history in the user's home directory. The shell reads
- * the history from this file when it starts, and writes it back to the file when it exits.
- *
- *
- * Note: I did the challange Problem 4 so you have to use two tabs.
- */
-
-
-/**
-*
-*  while(TRUE) {
-*   read_command(command, parameters);
-*   if (fork() != 0) {
-*   parent code
-*   waitpid(-1, &status, 0);
-*   } else {
-*   execve(command, parameters, 0);
-*   }
-*  }
-*/
-
-
-
 int main(int argc, char *argv[])
 {
   // Bind the tab key to the rl_complete function
