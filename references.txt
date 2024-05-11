@@ -1,8 +1,0 @@
-1. https://stackoverflow.com/questions/69328921/get-user-command-in-c-in-multiple-lines
-2. https://stackoverflow.com/questions/266357/tokenizing-strings-in-c
-3. https://www.tutorialspoint.com/string-tokenisation-function-in-c
-4. https://stackoverflow.com/questions/19354870/bash-command-line-and-input-limit
-5. https://stackoverflow.com/questions/45336910/making-an-array-of-tokens-from-string-with-strtok-malloc-and-realloc
-6. https://stackoverflow.com/questions/23340201/c-split-cmd-arguments
-7. https://stackoverflow.com/questions/73395641/in-included-file-begin-code-h-file-not-found-occurring-in-neovim-lsp
-8. https://www.reddit.com/r/C_Programming/comments/jwyhwm/is_fgets_just_getline/
