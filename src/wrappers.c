@@ -111,7 +111,7 @@ int Write(int fd, const void *buf, size_t count) {
   return result;
 }
 
-int Pipe(int pipefd[])
+int Pipe(int pipefd[2])
 {
   int result;
   if ((result = pipe(pipefd)) == -1) {
