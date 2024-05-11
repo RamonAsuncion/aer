@@ -12,7 +12,6 @@
 
 void execute_command(char *command)
 {
-
   char *arg = strtok(command, " \n");
   char **args = malloc(sizeof(char*));
   int i = 0;
