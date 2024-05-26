@@ -56,6 +56,8 @@ int main(int argc, char *argv[])
 
   while (true) {
     char *command = readline("ishell> ");
+    if (!command) break;
+
     add_history(command);
 
     if (strcmp(command, "exit") == 0) break;
