@@ -10,6 +10,21 @@
 
 #include "wrappers.h"
 
+
+//  cd: Changes the current working directory.
+//  echo: Displays a line of text or variable values.
+//  exit: Terminates the shell process. (DONE)
+//  export: Sets environment variables.
+//  alias: Creates a shortcut (alias) for a command.
+//  history: Displays a list of previously executed commands.
+//  pwd: Prints the current working directory.
+//  source or .: Executes commands from a file in the current shell context.
+//  unset: Removes the value of a variable or variables.
+
+char* last_working_dir = NULL;
+
+// void handle_cd_command
+
 void execute_command(char *command)
 {
   char *arg = strtok(command, " \n");
@@ -22,6 +37,36 @@ void execute_command(char *command)
     i++;
   }
   args[i] = NULL;
+
+  // FIXME: switch statement to handle the commands?
+
+  // Handle 'cd' command.
+  if (strcmp(args[0], "cd") == 0) {
+    if (args[1] == NULL || strcmp(args[1], "~") == 0) {
+      printf("Go home.\n");
+      chdir(getenv("HOME"));
+    } else if (strcmp(args[1], ".") == 0) {
+      printf ("Current directory: .\n");
+      return;
+    } else if (strcmp(args[1], "..") == 0) {
+      printf("Go back a directory: ..\n");
+      char cwd[1024];
+      if (getcwd(cwd, sizeof(cwd)) != NULL) {
+        chdir(cwd);
+      }
+    } else if (strcmp(args[1], "-") == 0) {
+      printf("Previous directory: ..\n");
+      printf("-\n");
+      if (last_working_dir != NULL) {
+        chdir(last_working_dir);
+      }
+    } else {
+      if (chdir(args[1]) != 0) {
+        perror("ishell: cd");
+      }
+    }
+    return;
+  }
 
   pid_t pid = Fork();
   if (pid == 0) {
@@ -62,6 +107,7 @@ int main(int argc, char *argv[])
 
     if (strcmp(command, "exit") == 0) break;
 
+    // Command split with semicolon.
     if (strchr(command, ';') != NULL) {
       char *cmd = strtok(command, ";");
       char **cmds = malloc(sizeof(char*));
