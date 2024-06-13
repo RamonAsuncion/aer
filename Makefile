@@ -1,5 +1,5 @@
 CC = gcc -I ./include
-CFLAGS = -std=gnu99 -Wall -g #-DDEBUG
+CFLAGS = -std=gnu99 -Wall -g #-DDEBUG=1
 
 INC = ./include
 SRC = ./src
