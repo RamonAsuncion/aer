@@ -11,8 +11,9 @@
 
 #include "wrappers.h"
 
-#define MAX_ARGS    64
-#define BUFFER_SIZE 1024
+#define MAX_ARGS     64
+#define BUFFER_SIZE  1024
+#define HISTORY_SIZE 1024
 
 char *last_working_dir = NULL;
 
@@ -88,7 +89,7 @@ int main(int argc, char *argv[])
   char *home = getenv("HOME");
 
   // Initialize the history list
-  char history_path[1024];
+  char history_path[HISTORY_SIZE];
   sprintf(history_path, "%s/.history", home);
   read_history(history_path);
 
@@ -123,6 +124,6 @@ int main(int argc, char *argv[])
     free(command);
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
