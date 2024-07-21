@@ -9,6 +9,8 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
+// TODO: Pressing enter seg faults the program.
+
 #include "wrappers.h"
 
 #define MAX_ARGS     64
@@ -30,6 +32,8 @@ void change_directory(char *new_dir)
 
 void execute_command(char *command)
 {
+  if (!command) return;
+
   char *arg = strtok(command, " \n");
   char **args = malloc(MAX_ARGS * sizeof(char*));
   int i = 0;
@@ -40,8 +44,9 @@ void execute_command(char *command)
   }
   args[i] = NULL;
 
-  // Handle 'cd' command.
-  if (strcmp(args[0], "cd") == 0) {
+  if (strcmp(command, "exit") == 0) {
+    exit(0);
+  } else if (strcmp(args[0], "cd") == 0) {
     if (args[1] == NULL || strcmp(args[1], "~") == 0) {
       change_directory(getenv("HOME"));
     } else if (strcmp(args[1], ".") == 0) {
@@ -57,7 +62,19 @@ void execute_command(char *command)
       change_directory(args[1]);
     }
     return;
+  } else if (strcmp(args[0], "history") == 0) {
+    HIST_ENTRY **h = history_list();
+    if (h) {
+      for (int i = 0; h[i]; ++i) {
+        printf("%5d  %s\n", i + history_base, h[i]->line);
+      }
+    }
+    return;
   }
+  // FIXME: This has to be part of the execution for the fork command.
+  //else {
+  //  fprintf(stderr, "ishell: %s command not found.\n", args[0]);
+  //}
 
   pid_t pid = Fork();
   if (pid == 0) {
@@ -97,9 +114,11 @@ int main(int argc, char *argv[])
     char *command = readline("ishell> ");
     if (!command) break;
 
+    // Add the command to history list.
     add_history(command);
 
-    if (strcmp(command, "exit") == 0) break;
+    // Write the history to file.
+    write_history(history_path);
 
     // Command split with semicolon.
     if (strchr(command, ';') != NULL) {
