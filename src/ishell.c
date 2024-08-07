@@ -5,11 +5,14 @@
 #include <sys/types.h>
 #include <stdbool.h>
 #include <libgen.h>
+#include <errno.h>
 #include <sys/wait.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 
 // TODO: Pressing enter seg faults the program.
+// TODO: Ctrl + C should create new shell.
+// TODO: Writing the wrong command "sl" then writing exit does not work.
 
 #include "wrappers.h"
 
@@ -70,7 +73,11 @@ void execute_command(char *command)
       }
     }
     return;
+  } else if (strcmp(args[0], "echo") == 0) {
+    // TODO: a few problems. 1. the flags don't get deleted, the quotes stay, and the new line removed does not work, and implementing escape.
+    return;
   }
+
   // FIXME: This has to be part of the execution for the fork command.
   //else {
   //  fprintf(stderr, "ishell: %s command not found.\n", args[0]);
@@ -78,7 +85,12 @@ void execute_command(char *command)
 
   pid_t pid = Fork();
   if (pid == 0) {
-    Execvp(args[0], args);
+    // FIXME: Use the Execvp wrapper function.
+    if (execvp(args[0], args) == -1 && errno == ENOENT) {
+      fprintf(stderr, "ishell: %s: command not found.\n", args[0]);
+    } else {
+      Execvp(args[0], args);
+    }
   } else if (pid > 0) {
     int status;
     Wait(&status);
@@ -94,7 +106,7 @@ void execute_command(char *command)
   }
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
   // Bind the tab key to the rl_complete function
   rl_bind_key('\t', rl_complete);
