@@ -1,5 +1,5 @@
-#ifndef _wrappers_h_
-#define _wrappers_h_
+#ifndef _WRAPPERS_H_
+#define _WRAPPERS_H_
 
 #include <stdio.h>
 #include <unistd.h>
@@ -13,10 +13,12 @@
 
 /**
  * @brief Wrapper for wait()
+ * @param pid set of child processes for which to wait
  * @param wstatus status of child
+ * @param options options provided to the waitpid function
  * @return pid_t pid of child if successful, -1 otherwise
  */
-pid_t Wait(int *wstatus);
+pid_t WaitForPid(pid_t pid, int *wstatus, int options);
 
 /**
  * @brief Wrapper for fork()
@@ -32,4 +34,4 @@ pid_t Fork(void);
  */
 int Execvp(const char *file, char *const argv[]);
 
-#endif /* _wrappers_h_ */
+#endif /* _WRAPPERS_H_ */
