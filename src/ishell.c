@@ -7,16 +7,17 @@
 #include <libgen.h>
 #include <errno.h>
 #include <sys/wait.h>
+
 #include <readline/readline.h>
 #include <readline/history.h>
 
 // TODO: Writing the wrong command "sl" then writing exit does not work.
 // TODO: alias command
 
+#include "platform.h"
 #include "wrappers.h"
 
 #define MAX_ARGS     64
-#define BUFFER_SIZE  1024
 #define HISTORY_SIZE 1024
 
 char *last_working_dir = NULL;
@@ -67,14 +68,26 @@ void execute_command(char *command)
     }
     return;
   } else if (strcmp(args[0], "history") == 0) {
-    HIST_ENTRY **h = history_list();
-    if (h) {
-      for (int i = 0; h[i]; ++i) {
-        printf("%5d  %s\n", i + history_base, h[i]->line);
-      }
-    }
+    //HIST_ENTRY **h = history_list();
+    //if (h) {
+    //  for (int i = 0; h[i]; ++i) {
+    //    printf("%5d  %s\n", i + history_base, h[i]->line);
+    //  }
+    //}
+    //return;
+   for (int i = history_base; i < history_length; i++) {
+            HIST_ENTRY *entry = history_get(i);
+            if (entry) {
+                printf("%5d  %s\n", i + 1, entry->line);
+            }
+        }
     return;
   } else if (strcmp(args[0], "echo") == 0) {
+    for (int i = 1; args[i] != NULL; i++) {
+      printf("%s ", args[i]);
+    }
+    printf("\n");
+    return;
     // TODO: a few problems. 1. the flags don't get deleted, the quotes stay, and the new line removed does not work, and implementing escape.
     return;
   }
@@ -108,18 +121,15 @@ void execute_command(char *command)
 
 int main(int argc, char **argv)
 {
-  // Bind the tab key to the rl_complete function
-  rl_bind_key('\t', rl_complete);
-
-  // Clear the screen with Ctrl + L
-  rl_bind_keyseq("\\C-l", rl_clear_screen);
+  set_key_bindings();
 
   // Get the home directory
   char *home = getenv("HOME");
 
   // Initialize the history list
   char history_path[HISTORY_SIZE];
-  sprintf(history_path, "%s/.history", home);
+  snprintf(history_path, sizeof(history_path), "%s/.history", home);
+  // sprintf(history_path, "%s/.history", home);
   read_history(history_path);
 
   while (true) {
