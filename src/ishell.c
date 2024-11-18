@@ -10,9 +10,8 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-// TODO: Pressing enter seg faults the program.
-// TODO: Ctrl + C should create new shell.
 // TODO: Writing the wrong command "sl" then writing exit does not work.
+// TODO: alias command
 
 #include "wrappers.h"
 
@@ -35,7 +34,7 @@ void change_directory(char *new_dir)
 
 void execute_command(char *command)
 {
-  if (!command) return;
+  if (!command || !(command[0])) return;
 
   char *arg = strtok(command, " \n");
   char **args = malloc(MAX_ARGS * sizeof(char*));
@@ -48,12 +47,14 @@ void execute_command(char *command)
   args[i] = NULL;
 
   if (strcmp(command, "exit") == 0) {
+    printf("Exit!\n");
     exit(0);
   } else if (strcmp(args[0], "cd") == 0) {
     if (args[1] == NULL || strcmp(args[1], "~") == 0) {
       change_directory(getenv("HOME"));
     } else if (strcmp(args[1], ".") == 0) {
       // No action needed, current directory.
+      return;
     } else if (strcmp(args[1], "..") == 0) {
       char *parent_dir = dirname(getcwd(NULL, 0));
       change_directory(parent_dir);
@@ -77,7 +78,6 @@ void execute_command(char *command)
     // TODO: a few problems. 1. the flags don't get deleted, the quotes stay, and the new line removed does not work, and implementing escape.
     return;
   }
-
   // FIXME: This has to be part of the execution for the fork command.
   //else {
   //  fprintf(stderr, "ishell: %s command not found.\n", args[0]);
@@ -85,7 +85,7 @@ void execute_command(char *command)
 
   pid_t pid = Fork();
   if (pid == 0) {
-    // FIXME: Use the Execvp wrapper function.
+    // fixme: Using wrapper function has it's own error ahndling already.
     if (execvp(args[0], args) == -1 && errno == ENOENT) {
       fprintf(stderr, "ishell: %s: command not found.\n", args[0]);
     } else {
