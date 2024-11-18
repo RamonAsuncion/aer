@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <stdbool.h>
 #include <libgen.h>
+#include <limits.h>
 #include <errno.h>
 #include <sys/wait.h>
 
@@ -43,6 +44,7 @@ void execute_command(char *command)
 
   char *arg = strtok(command, " \n");
   char **args = malloc(MAX_ARGS * sizeof(char*));
+  char path[PATH_MAX];
   pid_t pid;
   int status;
   int i = 0;
@@ -85,6 +87,14 @@ void execute_command(char *command)
       printf("%s ", args[i]);
     }
     printf("\n");
+    return;
+  } else if (strcmp(args[0], "pwd") == 0) {
+    memset (path, 0, sizeof(path));
+    if (getcwd(path, sizeof(path)) == NULL) {
+      perror("getcwd");
+      exit(EXIT_FAILURE);
+    }
+    printf("%s\n", path);
     return;
   }
 
