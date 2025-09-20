@@ -1,15 +1,21 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
+//#include <stdio.h>
+//#include <stdlib.h>
+//#include <string.h>
+//#include <unistd.h>
+//#include <sys/types.h>
 #include <stdbool.h>
-#include <libgen.h>
+//#include <libgen.h>
 #include <limits.h>
-#include <errno.h>
-#include <sys/wait.h>
+//#include <errno.h>
+//#include <sys/wait.h>
 
-#include <readline/readline.h>
+/**
+ *  https://wiki.osdev.org/Implications_of_writing_a_freestanding_C_project#Headers_available_as_of_C99
+ */
+
+// todo: make temporary wrappers for the printf function etc
+
+// #include <readline/readline.h>
 #include <readline/history.h>
 
 #include "platform.h"
@@ -17,7 +23,14 @@
 
 #define MAX_ARGS     64
 #define HISTORY_SIZE 1024
+#define MAX_LINE     4096
 
+// https://stackoverflow.com/questions/3866217/how-can-i-make-the-system-call-write-print-to-the-screen
+
+
+char *readline(char *in)
+{
+}
 
 char *last_working_dir = NULL;
 
@@ -83,8 +96,7 @@ void execute_command(char *command)
     }
     return;
   } else if (strcmp(args[0], "echo") == 0) {
-    for (int i = 1; args[i] != NULL; i++) {
-      printf("%s ", args[i]);
+    for (int i = 1; args[i] != NULL; i++) { printf("%s ", args[i]);
     }
     printf("\n");
     return;
