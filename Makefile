@@ -1,12 +1,11 @@
 SRC = src
-OBJ = obj
 BIN = bin
 
-CFLAGS = -std=gnu99 -Wall -Wextra -g -lreadline
+CFLAGS = -Wall -Wextra -g
 
-all: $(BIN)/ishell
+all: $(BIN)/aer
 
-$(BIN)/ishell: $(SRC)/ishell.c
+$(BIN)/aer: $(SRC)/aer.c
 	$(CC) $(CFLAGS) $^ -o $@
 
 .PHONY: all clean

@@ -8,8 +8,6 @@
 #include <limits.h> // not libc
 #include <errno.h>
 #include <sys/wait.h>
-#include <readline/readline.h>
-#include <readline/history.h>
 
 #define MAX_ARGS     64
 #define HISTORY_SIZE 1024
@@ -49,6 +47,14 @@ int Execvp(const char *file, char *const argv[])
   return 0;
 }
 
+char *readline(const char *prompt)
+{
+  static char buffer[MAX_LINE];
+  printf("%s", prompt);
+  if (fgets(buffer, sizeof(buffer), stdin) == NULL) return NULL;
+  buffer[strcspn(buffer, "\n")] = 0;
+  return buffer;
+}
 
 char *last_working_dir = NULL;
 
@@ -56,7 +62,7 @@ void change_directory(char *new_dir)
 {
   char *prev_working_dir = getcwd(NULL, 0);
   if (chdir(new_dir) == -1) {
-    perror("ishell: cd");
+    perror("aer: cd");
   } else {
     free(last_working_dir);
     last_working_dir = prev_working_dir;
@@ -85,7 +91,7 @@ void execute_command(char *command)
     exit(0);
   } else if (strcmp(args[0], "cd") == 0) {
     if (args[1] == NULL || strcmp(args[1], "~") == 0) {
-      change_directory(getenv("HOME"));
+      // change_directory(getenv("HOME"));
     } else if (strcmp(args[1], ".") == 0) {
       return;
     } else if (strcmp(args[1], "..") == 0) {
@@ -100,12 +106,12 @@ void execute_command(char *command)
     }
     return;
   } else if (strcmp(args[0], "history") == 0) {
-    for (int i = history_base; i < history_length; i++) {
-      HIST_ENTRY *entry = history_get(i);
-      if (entry) {
-        printf("%5d  %s\n", i + 1, entry->line);
-      }
-    }
+    // for (int i = history_base; i < history_length; i++) {
+      // HIST_ENTRY *entry = history_get(i);
+      // if (entry) {
+      //   printf("%5d  %s\n", i + 1, entry->line);
+      // }
+    // }
     return;
   } else if (strcmp(args[0], "echo") == 0) {
     for (int i = 1; args[i] != NULL; i++) { printf("%s ", args[i]);
@@ -126,12 +132,12 @@ void execute_command(char *command)
   if (pid == 0) {
     // Child
     if (execvp(args[0], args) == -1 && errno == ENOENT) {
-      fprintf(stderr, "ishell: %s: command not found.\n", args[0]);
+      fprintf(stderr, "aer: %s: command not found.\n", args[0]);
     }
     exit(EXIT_FAILURE);
   } else if (pid < 0) {
     // Error forking
-    perror("[ishell: fork failed]");
+    perror("[aer: fork failed]");
   } else {
     // Parent
     do {
@@ -144,18 +150,18 @@ int main()
 {
   // set_key_bindings();
 
-  char *home = getenv("HOME");
+  // char *home = getenv("HOME");
 
-  char history_path[HISTORY_SIZE];
-  snprintf(history_path, sizeof(history_path), "%s/.history", home);
-  read_history(history_path);
+  // char history_path[HISTORY_SIZE];
+  // snprintf(history_path, sizeof(history_path), "%s/.history", home);
+  // read_history(history_path);
 
   while (true) {
-    char *command = readline("ishell> ");
+    char *command = readline("> ");
     if (!command) break;
 
-    add_history(command);
-    write_history(history_path);
+    // add_history(command);
+    // write_history(history_path);
 
     if (strchr(command, ';') != NULL) {
       char *cmd = strtok(command, ";");
@@ -176,7 +182,7 @@ int main()
       execute_command(command);
     }
 
-    free(command);
+    // free(command);
   }
 
   return EXIT_SUCCESS;
