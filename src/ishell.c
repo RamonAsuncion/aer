@@ -5,25 +5,51 @@
 #include <sys/types.h>
 #include <stdbool.h>
 #include <libgen.h>
-#include <limits.h>
 #include <errno.h>
 #include <sys/wait.h>
-
 #include <readline/readline.h>
 #include <readline/history.h>
 
 #include "platform.h"
 #include "wrappers.h"
 
+// TODO: Add ability to change "PS1"?
+// TODO: Make text a certain color.
+
 #define MAX_ARGS     64
 #define HISTORY_SIZE 1024
+#define MAX_ALIAS    10
+#define PATH_MAX     4096
 
+struct aliases {
+  char *name;
+  char *command;
+};
+
+struct aliases alias[MAX_ALIAS];
 
 char *last_working_dir = NULL;
+int alias_count = 0;
 
-/**
- * Changes the current working directory and updates the last working directory.
- */
+void add_alias(char *name, char *command)
+{
+  if (alias_count < MAX_ALIAS) {
+    alias[alias_count].name = strdup(name);
+    alias[alias_count].command = strdup(command);
+    alias_count++;
+  }
+}
+
+char *get_alias_command(char *name)
+{
+  // TODO: probably use hash table
+  for (int i = 0; i < alias_count; ++i) {
+    if (strcmp(alias[i].name, name) == 0)
+      return alias[i].command;
+  }
+  return NULL;
+}
+
 void change_directory(char *new_dir)
 {
   char *prev_working_dir = getcwd(NULL, 0);
@@ -35,26 +61,53 @@ void change_directory(char *new_dir)
   }
 }
 
-/**
- * Parses and executes the given command.
- */
+char **parse_args(char *cmd)
+{
+  char *token = strtok(cmd, " \n");
+  char **args = malloc(MAX_ARGS * sizeof(char*));
+  int i = 0;
+
+  while (token != NULL) {
+    args[i] = token;
+    token = strtok(NULL, " \n");
+    i++;
+  }
+  args[i] = NULL;
+  return args;
+}
+
+char **split_string(char *str, char *delim)
+{
+  char *str_cpy = strdup(str);
+  if (str_cpy == NULL) return NULL;
+
+  int num_tokens = 0;
+  char *token = strtok(str_cpy, delim);
+  while (token != NULL) {
+    num_tokens++;
+    token = strtok(NULL, delim);
+    printf("token: %s\n", token);
+  }
+  printf("total tokens: %d\n", num_tokens);
+  free(str_cpy);
+
+  char **res = malloc((num_tokens + 1) * sizeof(char*));
+  if (res == NULL) return NULL;
+
+  free(res);
+
+  return NULL;
+}
+
 void execute_command(char *command)
 {
   if (!command || !(command[0])) return;
 
-  char *arg = strtok(command, " \n");
-  char **args = malloc(MAX_ARGS * sizeof(char*));
   char path[PATH_MAX];
   pid_t pid;
   int status;
-  int i = 0;
 
-  while (arg != NULL) {
-    args[i] = arg;
-    arg = strtok(NULL, " \n");
-    i++;
-  }
-  args[i] = NULL;
+  char **args = parse_args(command);
 
   if (strcmp(command, "exit") == 0) {
     exit(0);
@@ -67,9 +120,8 @@ void execute_command(char *command)
       char *parent_dir = dirname(getcwd(NULL, 0));
       change_directory(parent_dir);
     } else if (strcmp(args[1], "-") == 0) {
-      if (last_working_dir != NULL) {
+      if (last_working_dir != NULL)
         change_directory(last_working_dir);
-      }
     } else {
       change_directory(args[1]);
     }
@@ -77,19 +129,24 @@ void execute_command(char *command)
   } else if (strcmp(args[0], "history") == 0) {
     for (int i = history_base; i < history_length; i++) {
       HIST_ENTRY *entry = history_get(i);
-      if (entry) {
+      if (entry)
         printf("%5d  %s\n", i + 1, entry->line);
-      }
     }
     return;
   } else if (strcmp(args[0], "echo") == 0) {
-    for (int i = 1; args[i] != NULL; i++) {
+    for (int i = 1; args[i] != NULL; i++)
       printf("%s ", args[i]);
-    }
     printf("\n");
     return;
+  } else if (strcmp(args[0], "alias") == 0) {
+    // TODO: Why is it args[2]?
+    // TODO: When the command is alias it should stop trying to use parse_args and use the
+    // Waste of computation just straight up using command
+    // split string function.
+    printf("command: %s\n", command);
+    return;
   } else if (strcmp(args[0], "pwd") == 0) {
-    memset (path, 0, sizeof(path));
+    memset(path, 0, sizeof(path));
     if (getcwd(path, sizeof(path)) == NULL) {
       perror("getcwd");
       exit(EXIT_FAILURE);
@@ -101,9 +158,8 @@ void execute_command(char *command)
   pid = Fork();
   if (pid == 0) {
     // Child
-    if (execvp(args[0], args) == -1 && errno == ENOENT) {
+    if (execvp(args[0], args) == -1 && errno == ENOENT)
       fprintf(stderr, "ishell: %s: command not found.\n", args[0]);
-    }
     exit(EXIT_FAILURE);
   } else if (pid < 0) {
     // Error forking
@@ -129,8 +185,10 @@ int main(int argc, char **argv)
   snprintf(history_path, sizeof(history_path), "%s/.history", home);
   read_history(history_path);
 
+  const char *ps1 = "ishell> ";
+
   while (true) {
-    char *command = readline("ishell> ");
+    char *command = readline(ps1);
     if (!command) break;
 
     add_history(command);
@@ -148,9 +206,8 @@ int main(int argc, char **argv)
       }
       cmds[i] = NULL;
 
-      for (int j = 0; j < i; ++j) {
+      for (int j = 0; j < i; ++j)
         execute_command(cmds[j]);
-      }
     } else {
       execute_command(command);
     }
