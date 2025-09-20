@@ -1,42 +1,57 @@
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <string.h>
-//#include <unistd.h>
-//#include <sys/types.h>
-#include <stdbool.h>
-//#include <libgen.h>
-#include <limits.h>
-//#include <errno.h>
-//#include <sys/wait.h>
-
-/**
- *  https://wiki.osdev.org/Implications_of_writing_a_freestanding_C_project#Headers_available_as_of_C99
- */
-
-// todo: make temporary wrappers for the printf function etc
-
-// #include <readline/readline.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <stdbool.h> // not libc
+#include <libgen.h>
+#include <limits.h> // not libc
+#include <errno.h>
+#include <sys/wait.h>
+#include <readline/readline.h>
 #include <readline/history.h>
-
-#include "platform.h"
-#include "wrappers.h"
 
 #define MAX_ARGS     64
 #define HISTORY_SIZE 1024
 #define MAX_LINE     4096
 
-// https://stackoverflow.com/questions/3866217/how-can-i-make-the-system-call-write-print-to-the-screen
-
-
-char *readline(char *in)
+pid_t WaitForPid(pid_t pid, int *wstatus, int options)
 {
+  pid_t child_pid;
+
+  if ((child_pid = waitpid(pid, wstatus, options)) == -1) {
+    perror("WaitForPid error, program aborts.");
+    exit(-1);
+  }
+
+  return child_pid;
 }
+
+pid_t Fork(void)
+{
+  int pid;
+
+  if ((pid = fork()) == -1) {
+    perror("Fork error, program aborts.");
+    exit(-1);
+  }
+
+  return pid;
+}
+
+int Execvp(const char *file, char *const argv[])
+{
+  if (execvp(file, argv) == -1) {
+    perror("Execvp error");
+    exit(-1);
+  }
+
+  return 0;
+}
+
 
 char *last_working_dir = NULL;
 
-/**
- * Changes the current working directory and updates the last working directory.
- */
 void change_directory(char *new_dir)
 {
   char *prev_working_dir = getcwd(NULL, 0);
@@ -48,9 +63,6 @@ void change_directory(char *new_dir)
   }
 }
 
-/**
- * Parses and executes the given command.
- */
 void execute_command(char *command)
 {
   if (!command || !(command[0])) return;
@@ -128,12 +140,9 @@ void execute_command(char *command)
   }
 }
 
-/**
- * Main shell loop that handles user input and command execution.
- */
-int main(int argc, char **argv)
+int main()
 {
-  set_key_bindings();
+  // set_key_bindings();
 
   char *home = getenv("HOME");
 

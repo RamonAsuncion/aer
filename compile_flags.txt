@@ -1,4 +1,0 @@
--I./include
--std=gnu99
--Wall
--g
